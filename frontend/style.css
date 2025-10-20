@@ -241,8 +241,63 @@ header h1 {
 }
 
 .sources-content {
-    padding: 0 0.5rem 0.25rem 1.5rem;
+    padding: 0.5rem 0.5rem 0.5rem 1rem;
     color: var(--text-secondary);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* Source Links */
+.source-link {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    padding: 0.5rem 0.75rem;
+    background: var(--background);
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    display: inline-block;
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+
+.source-link::before {
+    content: '🔗 ';
+    opacity: 0.7;
+    margin-right: 0.25rem;
+}
+
+.source-link:hover {
+    background: var(--surface-hover);
+    border-color: var(--primary-color);
+    transform: translateX(4px);
+}
+
+.source-link:focus {
+    outline: none;
+    background: var(--surface-hover);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+/* Source Items (non-clickable) */
+.source-item {
+    color: var(--text-secondary);
+    padding: 0.5rem 0.75rem;
+    background: var(--background);
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    display: inline-block;
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+
+.source-item::before {
+    content: '📄 ';
+    opacity: 0.7;
+    margin-right: 0.25rem;
 }
 
 /* Markdown formatting styles */
