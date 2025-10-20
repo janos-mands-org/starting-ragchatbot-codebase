@@ -216,4 +216,5 @@ class NewTool(Tool):
         # Tool implementation
         return result_string
 ```
-- use uv to run python files or add any dependencies
+
+- do not run the server using ./run.sh i will start it myself
