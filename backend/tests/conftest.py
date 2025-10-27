@@ -3,12 +3,11 @@ Shared pytest fixtures for RAG system tests
 """
 
 import shutil
-
-# Add parent directory to path so we can import backend modules
 import sys
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -187,3 +186,62 @@ def empty_search_results():
 def error_search_results():
     """Provide error search results for testing"""
     return SearchResults.empty("No course found matching 'NonexistentCourse'")
+
+
+# API Testing Fixtures
+
+
+@pytest.fixture
+def mock_rag_system():
+    """Provide a mock RAG system for API testing"""
+    mock_rag = MagicMock()
+    mock_session_manager = MagicMock()
+    mock_session_manager.create_session.return_value = "test-session-123"
+    mock_rag.session_manager = mock_session_manager
+
+    # Default query response
+    mock_rag.query.return_value = (
+        "This is a test answer about machine learning.",
+        [
+            {"text": "Introduction to Machine Learning", "link": "https://example.com/ml-course"},
+            {
+                "text": "Lesson 1: What is Machine Learning?",
+                "link": "https://example.com/ml-course/lesson1",
+            },
+        ],
+    )
+
+    # Default analytics response
+    mock_rag.get_course_analytics.return_value = {
+        "total_courses": 2,
+        "course_titles": ["Introduction to Machine Learning", "Deep Learning Fundamentals"],
+    }
+
+    return mock_rag
+
+
+@pytest.fixture
+def mock_anthropic_client():
+    """Provide a mock Anthropic client for testing"""
+    mock_client = MagicMock()
+
+    # Mock successful response
+    mock_message = MagicMock()
+    mock_message.content = [MagicMock(type="text", text="This is a test response from Claude")]
+    mock_message.stop_reason = "end_turn"
+
+    mock_client.messages.create.return_value = mock_message
+
+    return mock_client
+
+
+@pytest.fixture
+def api_query_request():
+    """Provide a sample API query request"""
+    return {"query": "What is machine learning?", "session_id": "test-session-123"}
+
+
+@pytest.fixture
+def api_query_request_no_session():
+    """Provide a query request without session ID"""
+    return {"query": "Explain neural networks"}
