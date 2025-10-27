@@ -1,14 +1,16 @@
 """
 Tests for VectorStore operations
 """
-import pytest
+
 import sys
 from pathlib import Path
+
+import pytest
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from vector_store import VectorStore, SearchResults
+from vector_store import SearchResults, VectorStore
 
 
 class TestVectorStoreBasics:
@@ -16,15 +18,15 @@ class TestVectorStoreBasics:
 
     def test_vector_store_initialization(self, test_config):
         """Test that VectorStore initializes correctly"""
-        import tempfile
         import shutil
+        import tempfile
 
         temp_dir = tempfile.mkdtemp()
         try:
             store = VectorStore(
                 chroma_path=temp_dir,
                 embedding_model=test_config.EMBEDDING_MODEL,
-                max_results=test_config.MAX_RESULTS
+                max_results=test_config.MAX_RESULTS,
             )
             assert store.max_results == test_config.MAX_RESULTS
             assert store.course_catalog is not None
@@ -34,8 +36,8 @@ class TestVectorStoreBasics:
 
     def test_max_results_configuration(self, test_config):
         """CRITICAL: Test that max_results is properly configured"""
-        import tempfile
         import shutil
+        import tempfile
 
         temp_dir = tempfile.mkdtemp()
         try:
@@ -110,8 +112,8 @@ class TestSearch:
 
     def test_search_with_zero_max_results(self, sample_course, sample_course_chunks):
         """CRITICAL: Test search when max_results=0 (the bug!)"""
-        import tempfile
         import shutil
+        import tempfile
 
         temp_dir = tempfile.mkdtemp()
         try:
@@ -124,9 +126,9 @@ class TestSearch:
             results = store.search("machine learning")
 
             # This should return empty results!
-            print(f"\n🐛 BUG TEST: Searching with max_results=0")
+            print("\n🐛 BUG TEST: Searching with max_results=0")
             print(f"   Documents returned: {len(results.documents)}")
-            print(f"   Expected: 0 (due to max_results=0)")
+            print("   Expected: 0 (due to max_results=0)")
 
             # The bug: ChromaDB returns 0 results when n_results=0
             assert results.is_empty(), "When max_results=0, search should return empty"
@@ -138,8 +140,7 @@ class TestSearch:
     def test_search_with_course_filter(self, populated_vector_store):
         """Test search with course name filter"""
         results = populated_vector_store.search(
-            "machine learning",
-            course_name="Introduction to Machine Learning"
+            "machine learning", course_name="Introduction to Machine Learning"
         )
 
         assert not results.is_empty()
@@ -151,7 +152,7 @@ class TestSearch:
         """Test search with partial course name (semantic matching)"""
         results = populated_vector_store.search(
             "neural networks",
-            course_name="Deep Learning"  # Partial match
+            course_name="Deep Learning",  # Partial match
         )
 
         # Should find the Deep Learning Fundamentals course
@@ -161,9 +162,7 @@ class TestSearch:
     def test_search_with_lesson_filter(self, populated_vector_store):
         """Test search with lesson number filter"""
         results = populated_vector_store.search(
-            "machine learning",
-            course_name="Introduction to Machine Learning",
-            lesson_number=1
+            "machine learning", course_name="Introduction to Machine Learning", lesson_number=1
         )
 
         if not results.is_empty():
@@ -174,8 +173,7 @@ class TestSearch:
     def test_search_nonexistent_course(self, populated_vector_store):
         """Test search for course that doesn't exist"""
         results = populated_vector_store.search(
-            "anything",
-            course_name="NonexistentCourseThatDoesNotExist12345"
+            "anything", course_name="NonexistentCourseThatDoesNotExist12345"
         )
 
         # Note: Semantic search may still match to an existing course
@@ -185,10 +183,7 @@ class TestSearch:
 
     def test_search_with_custom_limit(self, populated_vector_store):
         """Test search with custom result limit"""
-        results = populated_vector_store.search(
-            "machine learning",
-            limit=2
-        )
+        results = populated_vector_store.search("machine learning", limit=2)
 
         # Should respect the custom limit
         assert len(results.documents) <= 2
@@ -225,7 +220,7 @@ class TestSearchResults:
         chroma_results = {
             "documents": [["doc1", "doc2"]],
             "metadatas": [[{"key": "value1"}, {"key": "value2"}]],
-            "distances": [[0.1, 0.2]]
+            "distances": [[0.1, 0.2]],
         }
 
         results = SearchResults.from_chroma(chroma_results)

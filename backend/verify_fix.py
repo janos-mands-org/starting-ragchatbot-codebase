@@ -2,6 +2,7 @@
 """
 Quick verification script to test if the MAX_RESULTS fix works
 """
+
 import sys
 from pathlib import Path
 
@@ -11,13 +12,14 @@ sys.path.insert(0, str(Path(__file__).parent))
 from config import config
 from rag_system import RAGSystem
 
+
 def main():
     print("=" * 60)
     print("RAG System Verification")
     print("=" * 60)
 
     # Check configuration
-    print(f"\n1. Checking Configuration:")
+    print("\n1. Checking Configuration:")
     print(f"   MAX_RESULTS: {config.MAX_RESULTS}")
 
     if config.MAX_RESULTS == 0:
@@ -28,16 +30,16 @@ def main():
         print(f"   ✅ PASS: MAX_RESULTS is {config.MAX_RESULTS}")
 
     # Initialize RAG system
-    print(f"\n2. Initializing RAG System:")
+    print("\n2. Initializing RAG System:")
     try:
         rag = RAGSystem(config)
-        print(f"   ✅ PASS: RAG system initialized")
+        print("   ✅ PASS: RAG system initialized")
     except Exception as e:
         print(f"   ❌ FAIL: {e}")
         return False
 
     # Check vector store
-    print(f"\n3. Checking Vector Store:")
+    print("\n3. Checking Vector Store:")
     print(f"   max_results: {rag.vector_store.max_results}")
 
     if rag.vector_store.max_results == 0:
@@ -47,7 +49,7 @@ def main():
         print(f"   ✅ PASS: Vector store has max_results={rag.vector_store.max_results}")
 
     # Check courses loaded
-    print(f"\n4. Checking Loaded Courses:")
+    print("\n4. Checking Loaded Courses:")
     analytics = rag.get_course_analytics()
     course_count = analytics["total_courses"]
     course_titles = analytics["course_titles"]
@@ -64,7 +66,7 @@ def main():
             print(f"      ... and {len(course_titles) - 3} more")
 
     # Test search capability
-    print(f"\n5. Testing Search Functionality:")
+    print("\n5. Testing Search Functionality:")
     if course_count > 0:
         try:
             from vector_store import SearchResults
@@ -80,7 +82,7 @@ def main():
                 print(f"   ❌ FAIL: Search error: {results.error}")
                 return False
             else:
-                print(f"   ⚠️  WARNING: Search returned empty results")
+                print("   ⚠️  WARNING: Search returned empty results")
                 print(f"   This might be normal if courses don't contain '{test_query}'")
         except Exception as e:
             print(f"   ❌ FAIL: Search failed: {e}")
@@ -89,7 +91,7 @@ def main():
         print("   ⏭️  SKIPPED: No courses loaded to test")
 
     # Test tool execution
-    print(f"\n6. Testing Tool Execution:")
+    print("\n6. Testing Tool Execution:")
     if course_count > 0:
         try:
             result = rag.search_tool.execute(query="introduction")
@@ -98,7 +100,7 @@ def main():
                 print(f"   ❌ FAIL: Tool returned error: {result}")
                 return False
             else:
-                print(f"   ✅ PASS: Tool executed successfully")
+                print("   ✅ PASS: Tool executed successfully")
                 print(f"   Result preview: {result[:100]}...")
         except Exception as e:
             print(f"   ❌ FAIL: Tool execution failed: {e}")
@@ -113,12 +115,13 @@ def main():
     print("  1. Start the server: uv run uvicorn app:app --reload --port 8000")
     print("  2. Test queries in the web UI at http://localhost:8000")
     print("  3. Or use curl:")
-    print('     curl -X POST http://localhost:8000/api/query \\')
+    print("     curl -X POST http://localhost:8000/api/query \\")
     print('       -H "Content-Type: application/json" \\')
     print('       -d \'{"query": "What is machine learning?"}\'')
     print()
 
     return True
+
 
 if __name__ == "__main__":
     success = main()

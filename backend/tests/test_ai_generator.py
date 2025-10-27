@@ -1,21 +1,23 @@
 """
 Tests for AIGenerator and tool calling behavior
 """
-import pytest
+
 import sys
 from pathlib import Path
-from unittest.mock import Mock, MagicMock, patch
-from types import SimpleNamespace
+from unittest.mock import Mock, patch
+
+import pytest
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from ai_generator import AIGenerator
-from search_tools import ToolManager, CourseSearchTool
+from search_tools import CourseSearchTool, ToolManager
 
 
 class MockAnthropicContent:
     """Mock for Anthropic message content"""
+
     def __init__(self, text=None, tool_name=None, tool_input=None, tool_id=None):
         if text:
             self.type = "text"
@@ -29,16 +31,19 @@ class MockAnthropicContent:
 
 class MockAnthropicResponse:
     """Mock for Anthropic API response"""
+
     def __init__(self, text_response=None, tool_use_response=None):
         if text_response:
             self.content = [MockAnthropicContent(text=text_response)]
             self.stop_reason = "end_turn"
         elif tool_use_response:
-            self.content = [MockAnthropicContent(
-                tool_name=tool_use_response["name"],
-                tool_input=tool_use_response["input"],
-                tool_id=tool_use_response.get("id", "toolu_12345")
-            )]
+            self.content = [
+                MockAnthropicContent(
+                    tool_name=tool_use_response["name"],
+                    tool_input=tool_use_response["input"],
+                    tool_id=tool_use_response.get("id", "toolu_12345"),
+                )
+            ]
             self.stop_reason = "tool_use"
 
 
@@ -48,8 +53,7 @@ class TestAIGeneratorInitialization:
     def test_initialization(self, test_config):
         """Test that AIGenerator initializes correctly"""
         generator = AIGenerator(
-            api_key=test_config.ANTHROPIC_API_KEY,
-            model=test_config.ANTHROPIC_MODEL
+            api_key=test_config.ANTHROPIC_API_KEY, model=test_config.ANTHROPIC_MODEL
         )
 
         assert generator.model == test_config.ANTHROPIC_MODEL
@@ -62,7 +66,7 @@ class TestAIGeneratorInitialization:
 class TestBasicResponseGeneration:
     """Test basic response generation without tools"""
 
-    @patch('anthropic.Anthropic')
+    @patch("anthropic.Anthropic")
     def test_generate_simple_response(self, mock_anthropic_class, test_config):
         """Test generating a simple response without tools"""
         # Setup mock
@@ -74,8 +78,7 @@ class TestBasicResponseGeneration:
 
         # Create generator
         generator = AIGenerator(
-            api_key=test_config.ANTHROPIC_API_KEY,
-            model=test_config.ANTHROPIC_MODEL
+            api_key=test_config.ANTHROPIC_API_KEY, model=test_config.ANTHROPIC_MODEL
         )
         generator.client = mock_client
 
@@ -84,13 +87,13 @@ class TestBasicResponseGeneration:
             query="What is machine learning?",
             conversation_history=None,
             tools=None,
-            tool_manager=None
+            tool_manager=None,
         )
 
         assert result == "This is a test response"
         assert mock_client.messages.create.called
 
-    @patch('anthropic.Anthropic')
+    @patch("anthropic.Anthropic")
     def test_generate_response_with_history(self, mock_anthropic_class, test_config):
         """Test generating response with conversation history"""
         # Setup mock
@@ -102,18 +105,14 @@ class TestBasicResponseGeneration:
 
         # Create generator
         generator = AIGenerator(
-            api_key=test_config.ANTHROPIC_API_KEY,
-            model=test_config.ANTHROPIC_MODEL
+            api_key=test_config.ANTHROPIC_API_KEY, model=test_config.ANTHROPIC_MODEL
         )
         generator.client = mock_client
 
         # Generate with history
         history = "User: Previous question\nAssistant: Previous answer"
         result = generator.generate_response(
-            query="Follow-up question",
-            conversation_history=history,
-            tools=None,
-            tool_manager=None
+            query="Follow-up question", conversation_history=history, tools=None, tool_manager=None
         )
 
         assert result == "Response with context"
@@ -126,7 +125,7 @@ class TestBasicResponseGeneration:
 class TestToolCallingBehavior:
     """Test AI tool calling behavior"""
 
-    @patch('anthropic.Anthropic')
+    @patch("anthropic.Anthropic")
     def test_ai_calls_search_tool(self, mock_anthropic_class, test_config, populated_vector_store):
         """Test that AI correctly calls search_course_content tool"""
         # Setup mock client
@@ -134,11 +133,13 @@ class TestToolCallingBehavior:
         mock_anthropic_class.return_value = mock_client
 
         # First response: tool use
-        tool_use_response = MockAnthropicResponse(tool_use_response={
-            "name": "search_course_content",
-            "input": {"query": "machine learning"},
-            "id": "toolu_123"
-        })
+        tool_use_response = MockAnthropicResponse(
+            tool_use_response={
+                "name": "search_course_content",
+                "input": {"query": "machine learning"},
+                "id": "toolu_123",
+            }
+        )
 
         # Second response: final answer
         final_response = MockAnthropicResponse(
@@ -149,8 +150,7 @@ class TestToolCallingBehavior:
 
         # Create generator and tool manager
         generator = AIGenerator(
-            api_key=test_config.ANTHROPIC_API_KEY,
-            model=test_config.ANTHROPIC_MODEL
+            api_key=test_config.ANTHROPIC_API_KEY, model=test_config.ANTHROPIC_MODEL
         )
         generator.client = mock_client
 
@@ -163,7 +163,7 @@ class TestToolCallingBehavior:
             query="What is machine learning?",
             conversation_history=None,
             tools=tool_manager.get_tool_definitions(),
-            tool_manager=tool_manager
+            tool_manager=tool_manager,
         )
 
         # Should return final response
@@ -172,7 +172,7 @@ class TestToolCallingBehavior:
         # Should have called API twice (initial + follow-up)
         assert mock_client.messages.create.call_count == 2
 
-    @patch('anthropic.Anthropic')
+    @patch("anthropic.Anthropic")
     def test_tool_execution_flow(self, mock_anthropic_class, test_config, populated_vector_store):
         """Test the complete tool execution flow"""
         # Setup mock
@@ -180,11 +180,13 @@ class TestToolCallingBehavior:
         mock_anthropic_class.return_value = mock_client
 
         # Tool use response
-        tool_response = MockAnthropicResponse(tool_use_response={
-            "name": "search_course_content",
-            "input": {"query": "neural networks", "course_name": "Deep Learning"},
-            "id": "toolu_456"
-        })
+        tool_response = MockAnthropicResponse(
+            tool_use_response={
+                "name": "search_course_content",
+                "input": {"query": "neural networks", "course_name": "Deep Learning"},
+                "id": "toolu_456",
+            }
+        )
 
         # Final response
         final_response = MockAnthropicResponse(
@@ -195,8 +197,7 @@ class TestToolCallingBehavior:
 
         # Setup generator and tools
         generator = AIGenerator(
-            api_key=test_config.ANTHROPIC_API_KEY,
-            model=test_config.ANTHROPIC_MODEL
+            api_key=test_config.ANTHROPIC_API_KEY, model=test_config.ANTHROPIC_MODEL
         )
         generator.client = mock_client
 
@@ -207,16 +208,19 @@ class TestToolCallingBehavior:
         result = generator.generate_response(
             query="Tell me about neural networks in the Deep Learning course",
             tools=tool_manager.get_tool_definitions(),
-            tool_manager=tool_manager
+            tool_manager=tool_manager,
         )
 
         assert "Neural networks" in result
 
-    @patch('anthropic.Anthropic')
-    def test_tool_calling_with_zero_max_results(self, mock_anthropic_class, test_config, sample_course, sample_course_chunks):
+    @patch("anthropic.Anthropic")
+    def test_tool_calling_with_zero_max_results(
+        self, mock_anthropic_class, test_config, sample_course, sample_course_chunks
+    ):
         """CRITICAL: Test tool calling when vector store has max_results=0"""
-        import tempfile
         import shutil
+        import tempfile
+
         from vector_store import VectorStore
 
         temp_dir = tempfile.mkdtemp()
@@ -231,11 +235,13 @@ class TestToolCallingBehavior:
             mock_anthropic_class.return_value = mock_client
 
             # Tool use response
-            tool_response = MockAnthropicResponse(tool_use_response={
-                "name": "search_course_content",
-                "input": {"query": "machine learning"},
-                "id": "toolu_789"
-            })
+            tool_response = MockAnthropicResponse(
+                tool_use_response={
+                    "name": "search_course_content",
+                    "input": {"query": "machine learning"},
+                    "id": "toolu_789",
+                }
+            )
 
             # Final response (AI receives "No relevant content found")
             final_response = MockAnthropicResponse(
@@ -246,8 +252,7 @@ class TestToolCallingBehavior:
 
             # Setup generator
             generator = AIGenerator(
-                api_key=test_config.ANTHROPIC_API_KEY,
-                model=test_config.ANTHROPIC_MODEL
+                api_key=test_config.ANTHROPIC_API_KEY, model=test_config.ANTHROPIC_MODEL
             )
             generator.client = mock_client
 
@@ -258,12 +263,12 @@ class TestToolCallingBehavior:
             result = generator.generate_response(
                 query="What is machine learning?",
                 tools=tool_manager.get_tool_definitions(),
-                tool_manager=tool_manager
+                tool_manager=tool_manager,
             )
 
-            print(f"\n🐛 BUG TEST: AI tool calling with max_results=0")
+            print("\n🐛 BUG TEST: AI tool calling with max_results=0")
             print(f"   AI response: {result}")
-            print(f"   Expected: AI says it couldn't find content (due to empty search results)")
+            print("   Expected: AI says it couldn't find content (due to empty search results)")
 
             # The AI should indicate it couldn't find content
             assert "couldn't find" in result.lower() or "no relevant content" in result.lower()
@@ -275,8 +280,10 @@ class TestToolCallingBehavior:
 class TestHandleToolExecution:
     """Test the _handle_tool_execution method"""
 
-    @patch('anthropic.Anthropic')
-    def test_handle_tool_execution_internal(self, mock_anthropic_class, test_config, populated_vector_store):
+    @patch("anthropic.Anthropic")
+    def test_handle_tool_execution_internal(
+        self, mock_anthropic_class, test_config, populated_vector_store
+    ):
         """Test the internal tool execution handler"""
         # Setup mock
         mock_client = Mock()
@@ -284,17 +291,18 @@ class TestHandleToolExecution:
 
         # Create generator
         generator = AIGenerator(
-            api_key=test_config.ANTHROPIC_API_KEY,
-            model=test_config.ANTHROPIC_MODEL
+            api_key=test_config.ANTHROPIC_API_KEY, model=test_config.ANTHROPIC_MODEL
         )
         generator.client = mock_client
 
         # Create mock initial response
-        initial_response = MockAnthropicResponse(tool_use_response={
-            "name": "search_course_content",
-            "input": {"query": "test query"},
-            "id": "toolu_test"
-        })
+        initial_response = MockAnthropicResponse(
+            tool_use_response={
+                "name": "search_course_content",
+                "input": {"query": "test query"},
+                "id": "toolu_test",
+            }
+        )
 
         # Mock final response
         final_response = MockAnthropicResponse(text_response="Final answer")
@@ -307,15 +315,11 @@ class TestHandleToolExecution:
         # Create base params
         base_params = {
             "messages": [{"role": "user", "content": "test query"}],
-            "system": AIGenerator.SYSTEM_PROMPT
+            "system": AIGenerator.SYSTEM_PROMPT,
         }
 
         # Call the internal method
-        result = generator._handle_tool_execution(
-            initial_response,
-            base_params,
-            tool_manager
-        )
+        result = generator._handle_tool_execution(initial_response, base_params, tool_manager)
 
         assert result == "Final answer"
         assert mock_client.messages.create.called
@@ -326,7 +330,7 @@ class TestSystemPrompt:
 
     def test_system_prompt_exists(self):
         """Test that system prompt is defined"""
-        assert hasattr(AIGenerator, 'SYSTEM_PROMPT')
+        assert hasattr(AIGenerator, "SYSTEM_PROMPT")
         assert len(AIGenerator.SYSTEM_PROMPT) > 0
 
     def test_system_prompt_mentions_tools(self):

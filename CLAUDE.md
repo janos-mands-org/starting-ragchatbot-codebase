@@ -29,6 +29,33 @@ uv run <command>
 uv run python backend/script.py
 ```
 
+### Code Quality Tools
+```bash
+# Format code (auto-fix)
+./scripts/format.sh
+# Or manually:
+uv run black backend/ main.py
+uv run ruff check backend/ main.py --fix
+
+# Run all quality checks
+./scripts/quality_check.sh
+# Or manually:
+uv run black --check backend/ main.py  # Check formatting
+uv run ruff check backend/ main.py     # Lint code
+uv run mypy backend/ main.py           # Type checking
+uv run pytest backend/tests/ -v        # Run tests
+
+# Pre-commit hooks (auto-runs on git commit)
+uv run pre-commit install              # Install hooks
+uv run pre-commit run --all-files      # Run manually on all files
+```
+
+**Quality Tools Configuration:**
+- **Black**: Code formatter with 100 char line length (pyproject.toml)
+- **Ruff**: Fast linter with pycodestyle, pyflakes, isort, bugbear rules
+- **MyPy**: Type checker with relaxed settings (suitable for gradual typing)
+- **Pre-commit**: Automatic quality checks before each commit
+
 ### Environment Setup
 - Copy `.env.example` to `.env` and add your `ANTHROPIC_API_KEY`
 - Requires Python 3.13+ and uv package manager

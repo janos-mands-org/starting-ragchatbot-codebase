@@ -1,16 +1,16 @@
 """
 Tests for CourseSearchTool and ToolManager
 """
-import pytest
+
 import sys
 from pathlib import Path
-from unittest.mock import Mock, MagicMock
+
+import pytest
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from search_tools import CourseSearchTool, CourseOutlineTool, ToolManager
-from vector_store import SearchResults
+from search_tools import CourseOutlineTool, CourseSearchTool, ToolManager
 
 
 class TestCourseSearchToolDefinition:
@@ -49,8 +49,9 @@ class TestCourseSearchToolExecution:
 
     def test_execute_with_zero_max_results(self, sample_course, sample_course_chunks):
         """CRITICAL: Test execute when VectorStore has max_results=0"""
-        import tempfile
         import shutil
+        import tempfile
+
         from vector_store import VectorStore
 
         temp_dir = tempfile.mkdtemp()
@@ -63,7 +64,7 @@ class TestCourseSearchToolExecution:
             tool = CourseSearchTool(store)
             result = tool.execute(query="machine learning")
 
-            print(f"\n🐛 BUG TEST: CourseSearchTool.execute with max_results=0")
+            print("\n🐛 BUG TEST: CourseSearchTool.execute with max_results=0")
             print(f"   Result: {result}")
 
             # With max_results=0, ChromaDB returns an error
@@ -77,8 +78,7 @@ class TestCourseSearchToolExecution:
         tool = CourseSearchTool(populated_vector_store)
 
         result = tool.execute(
-            query="machine learning",
-            course_name="Introduction to Machine Learning"
+            query="machine learning", course_name="Introduction to Machine Learning"
         )
 
         assert isinstance(result, str)
@@ -92,7 +92,7 @@ class TestCourseSearchToolExecution:
         result = tool.execute(
             query="machine learning",
             course_name="Introduction to Machine Learning",
-            lesson_number=1
+            lesson_number=1,
         )
 
         assert isinstance(result, str)
@@ -103,10 +103,7 @@ class TestCourseSearchToolExecution:
         """Test execute with nonexistent course"""
         tool = CourseSearchTool(populated_vector_store)
 
-        result = tool.execute(
-            query="anything",
-            course_name="NonexistentCourse12345"
-        )
+        result = tool.execute(query="anything", course_name="NonexistentCourse12345")
 
         # Note: Semantic search may still match to an existing course
         # This is expected behavior without a distance threshold
@@ -235,10 +232,7 @@ class TestToolManager:
         tool = CourseSearchTool(populated_vector_store)
         manager.register_tool(tool)
 
-        result = manager.execute_tool(
-            "search_course_content",
-            query="machine learning"
-        )
+        result = manager.execute_tool("search_course_content", query="machine learning")
 
         assert isinstance(result, str)
 
