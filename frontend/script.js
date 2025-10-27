@@ -5,7 +5,7 @@ const API_URL = '/api';
 let currentSessionId = null;
 
 // DOM elements
-let chatMessages, chatInput, sendButton, totalCourses, courseTitles, newChatButton;
+let chatMessages, chatInput, sendButton, totalCourses, courseTitles, newChatButton, themeToggle;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
@@ -16,7 +16,9 @@ document.addEventListener('DOMContentLoaded', () => {
     totalCourses = document.getElementById('totalCourses');
     courseTitles = document.getElementById('courseTitles');
     newChatButton = document.getElementById('newChatButton');
-    
+    themeToggle = document.getElementById('themeToggle');
+
+    initializeTheme();
     setupEventListeners();
     createNewSession();
     loadCourseStats();
@@ -33,6 +35,17 @@ function setupEventListeners() {
     // New chat button
     newChatButton.addEventListener('click', createNewSession);
 
+    // Theme toggle button
+    themeToggle.addEventListener('click', toggleTheme);
+
+    // Keyboard accessibility for theme toggle
+    themeToggle.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            toggleTheme();
+        }
+    });
+
     // Suggested questions
     document.querySelectorAll('.suggested-item').forEach(button => {
         button.addEventListener('click', (e) => {
@@ -43,6 +56,37 @@ function setupEventListeners() {
     });
 }
 
+// Theme Functions
+function initializeTheme() {
+    // Check localStorage for saved theme preference
+    const savedTheme = localStorage.getItem('theme');
+
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-mode');
+        updateThemeToggleState(true);
+    } else {
+        // Default to dark mode
+        document.body.classList.remove('light-mode');
+        updateThemeToggleState(false);
+    }
+}
+
+function toggleTheme() {
+    const isLightMode = document.body.classList.toggle('light-mode');
+
+    // Save preference to localStorage
+    localStorage.setItem('theme', isLightMode ? 'light' : 'dark');
+
+    // Update ARIA state
+    updateThemeToggleState(isLightMode);
+}
+
+function updateThemeToggleState(isLightMode) {
+    if (themeToggle) {
+        themeToggle.setAttribute('aria-pressed', isLightMode ? 'true' : 'false');
+        themeToggle.setAttribute('aria-label', isLightMode ? 'Switch to dark theme' : 'Switch to light theme');
+    }
+}
 
 // Chat Functions
 async function sendMessage() {
