@@ -5,7 +5,7 @@ const API_URL = '/api';
 let currentSessionId = null;
 
 // DOM elements
-let chatMessages, chatInput, sendButton, totalCourses, courseTitles;
+let chatMessages, chatInput, sendButton, totalCourses, courseTitles, newChatButton, themeToggle;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
@@ -15,7 +15,10 @@ document.addEventListener('DOMContentLoaded', () => {
     sendButton = document.getElementById('sendButton');
     totalCourses = document.getElementById('totalCourses');
     courseTitles = document.getElementById('courseTitles');
-    
+    newChatButton = document.getElementById('newChatButton');
+    themeToggle = document.getElementById('themeToggle');
+
+    initializeTheme();
     setupEventListeners();
     createNewSession();
     loadCourseStats();
@@ -28,8 +31,21 @@ function setupEventListeners() {
     chatInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') sendMessage();
     });
-    
-    
+
+    // New chat button
+    newChatButton.addEventListener('click', createNewSession);
+
+    // Theme toggle button
+    themeToggle.addEventListener('click', toggleTheme);
+
+    // Keyboard accessibility for theme toggle
+    themeToggle.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            toggleTheme();
+        }
+    });
+
     // Suggested questions
     document.querySelectorAll('.suggested-item').forEach(button => {
         button.addEventListener('click', (e) => {
@@ -40,6 +56,37 @@ function setupEventListeners() {
     });
 }
 
+// Theme Functions
+function initializeTheme() {
+    // Check localStorage for saved theme preference
+    const savedTheme = localStorage.getItem('theme');
+
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-mode');
+        updateThemeToggleState(true);
+    } else {
+        // Default to dark mode
+        document.body.classList.remove('light-mode');
+        updateThemeToggleState(false);
+    }
+}
+
+function toggleTheme() {
+    const isLightMode = document.body.classList.toggle('light-mode');
+
+    // Save preference to localStorage
+    localStorage.setItem('theme', isLightMode ? 'light' : 'dark');
+
+    // Update ARIA state
+    updateThemeToggleState(isLightMode);
+}
+
+function updateThemeToggleState(isLightMode) {
+    if (themeToggle) {
+        themeToggle.setAttribute('aria-pressed', isLightMode ? 'true' : 'false');
+        themeToggle.setAttribute('aria-label', isLightMode ? 'Switch to dark theme' : 'Switch to light theme');
+    }
+}
 
 // Chat Functions
 async function sendMessage() {
@@ -74,7 +121,7 @@ async function sendMessage() {
         if (!response.ok) throw new Error('Query failed');
 
         const data = await response.json();
-        
+
         // Update session ID if new
         if (!currentSessionId) {
             currentSessionId = data.session_id;
@@ -115,25 +162,34 @@ function addMessage(content, type, sources = null, isWelcome = false) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${type}${isWelcome ? ' welcome-message' : ''}`;
     messageDiv.id = `message-${messageId}`;
-    
+
     // Convert markdown to HTML for assistant messages
     const displayContent = type === 'assistant' ? marked.parse(content) : escapeHtml(content);
-    
+
     let html = `<div class="message-content">${displayContent}</div>`;
-    
+
     if (sources && sources.length > 0) {
+        // Render sources as clickable links when available
+        const sourceElements = sources.map(source => {
+            if (source.link) {
+                return `<a href="${escapeHtml(source.link)}" target="_blank" rel="noopener noreferrer" class="source-link">${escapeHtml(source.text)}</a>`;
+            } else {
+                return `<span class="source-item">${escapeHtml(source.text)}</span>`;
+            }
+        });
+
         html += `
             <details class="sources-collapsible">
                 <summary class="sources-header">Sources</summary>
-                <div class="sources-content">${sources.join(', ')}</div>
+                <div class="sources-content">${sourceElements.join('')}</div>
             </details>
         `;
     }
-    
+
     messageDiv.innerHTML = html;
     chatMessages.appendChild(messageDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
-    
+
     return messageId;
 }
 
@@ -149,7 +205,7 @@ function escapeHtml(text) {
 async function createNewSession() {
     currentSessionId = null;
     chatMessages.innerHTML = '';
-    addMessage('Welcome to the Course Materials Assistant! I can help you with questions about courses, lessons and specific content. What would you like to know?', 'assistant', null, true);
+    addMessage('Welcome to the Course Materials Assistant - WIP! I can help you with questions about courses, lessons and specific content. What would you like to know?', 'assistant', null, true);
 }
 
 // Load course statistics
@@ -158,15 +214,15 @@ async function loadCourseStats() {
         console.log('Loading course stats...');
         const response = await fetch(`${API_URL}/courses`);
         if (!response.ok) throw new Error('Failed to load course stats');
-        
+
         const data = await response.json();
         console.log('Course data received:', data);
-        
+
         // Update stats in UI
         if (totalCourses) {
             totalCourses.textContent = data.total_courses;
         }
-        
+
         // Update course titles
         if (courseTitles) {
             if (data.course_titles && data.course_titles.length > 0) {
@@ -177,7 +233,7 @@ async function loadCourseStats() {
                 courseTitles.innerHTML = '<span class="no-courses">No courses available</span>';
             }
         }
-        
+
     } catch (error) {
         console.error('Error loading course stats:', error);
         // Set default values on error

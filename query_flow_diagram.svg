@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1000" height="800" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7"
+     refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#333" />
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1000" height="800" fill="#f8f9fa"/>
+
+  <!-- Title -->
+  <text x="500" y="30" text-anchor="middle" font-size="20" font-weight="bold" fill="#333">
+    RAG Chatbot Query Processing Flow
+  </text>
+
+  <!-- Frontend Section -->
+  <rect x="50" y="60" width="200" height="120" fill="#e3f2fd" stroke="#1976d2" stroke-width="2" rx="5"/>
+  <text x="150" y="80" text-anchor="middle" font-weight="bold" fill="#1976d2">Frontend</text>
+  <text x="60" y="100" font-size="12" fill="#333">1. User enters query</text>
+  <text x="60" y="115" font-size="12" fill="#333">2. sendMessage() called</text>
+  <text x="60" y="130" font-size="12" fill="#333">3. POST /api/query</text>
+  <text x="60" y="145" font-size="12" fill="#333">4. Display response</text>
+  <text x="60" y="165" font-size="10" fill="#666">script.js:45-96</text>
+
+  <!-- API Endpoint -->
+  <rect x="350" y="60" width="200" height="120" fill="#fff3e0" stroke="#f57c00" stroke-width="2" rx="5"/>
+  <text x="450" y="80" text-anchor="middle" font-weight="bold" fill="#f57c00">FastAPI Endpoint</text>
+  <text x="360" y="100" font-size="12" fill="#333">1. Receive QueryRequest</text>
+  <text x="360" y="115" font-size="12" fill="#333">2. Create/get session</text>
+  <text x="360" y="130" font-size="12" fill="#333">3. Call rag_system.query()</text>
+  <text x="360" y="145" font-size="12" fill="#333">4. Return QueryResponse</text>
+  <text x="360" y="165" font-size="10" fill="#666">app.py:56-74</text>
+
+  <!-- RAG System -->
+  <rect x="650" y="60" width="250" height="120" fill="#f3e5f5" stroke="#7b1fa2" stroke-width="2" rx="5"/>
+  <text x="775" y="80" text-anchor="middle" font-weight="bold" fill="#7b1fa2">RAG System Orchestrator</text>
+  <text x="660" y="100" font-size="12" fill="#333">1. Build AI prompt</text>
+  <text x="660" y="115" font-size="12" fill="#333">2. Get conversation history</text>
+  <text x="660" y="130" font-size="12" fill="#333">3. Call ai_generator.generate_response()</text>
+  <text x="660" y="145" font-size="12" fill="#333">4. Extract sources, update history</text>
+  <text x="660" y="165" font-size="10" fill="#666">rag_system.py:102-140</text>
+
+  <!-- AI Generator -->
+  <rect x="50" y="240" width="250" height="140" fill="#e8f5e8" stroke="#388e3c" stroke-width="2" rx="5"/>
+  <text x="175" y="260" text-anchor="middle" font-weight="bold" fill="#388e3c">AI Generator (Claude)</text>
+  <text x="60" y="280" font-size="12" fill="#333">1. Build system prompt + context</text>
+  <text x="60" y="295" font-size="12" fill="#333">2. Initial API call to Claude</text>
+  <text x="60" y="310" font-size="12" fill="#333">3. If tool_use: handle_tool_execution()</text>
+  <text x="60" y="325" font-size="12" fill="#333">4. Execute tools via tool_manager</text>
+  <text x="60" y="340" font-size="12" fill="#333">5. Follow-up API call with results</text>
+  <text x="60" y="355" font-size="12" fill="#333">6. Return final response</text>
+  <text x="60" y="375" font-size="10" fill="#666">ai_generator.py:43-135</text>
+
+  <!-- Tool Manager -->
+  <rect x="400" y="240" width="200" height="140" fill="#fff8e1" stroke="#ffa000" stroke-width="2" rx="5"/>
+  <text x="500" y="260" text-anchor="middle" font-weight="bold" fill="#ffa000">Tool Manager</text>
+  <text x="410" y="280" font-size="12" fill="#333">1. Register CourseSearchTool</text>
+  <text x="410" y="295" font-size="12" fill="#333">2. Provide tool definitions</text>
+  <text x="410" y="310" font-size="12" fill="#333">3. Execute tool calls</text>
+  <text x="410" y="325" font-size="12" fill="#333">4. Track/return sources</text>
+  <text x="410" y="355" font-size="10" fill="#666">search_tools.py:116-154</text>
+
+  <!-- CourseSearchTool -->
+  <rect x="700" y="240" width="250" height="140" fill="#fce4ec" stroke="#c2185b" stroke-width="2" rx="5"/>
+  <text x="825" y="260" text-anchor="middle" font-weight="bold" fill="#c2185b">CourseSearchTool</text>
+  <text x="710" y="280" font-size="12" fill="#333">1. Receive search parameters</text>
+  <text x="710" y="295" font-size="12" fill="#333">2. Call vector_store.search()</text>
+  <text x="710" y="310" font-size="12" fill="#333">3. Apply course/lesson filters</text>
+  <text x="710" y="325" font-size="12" fill="#333">4. Format results with context</text>
+  <text x="710" y="340" font-size="12" fill="#333">5. Store sources for UI</text>
+  <text x="710" y="375" font-size="10" fill="#666">search_tools.py:20-114</text>
+
+  <!-- Vector Store -->
+  <rect x="350" y="450" width="300" height="140" fill="#e1f5fe" stroke="#0277bd" stroke-width="2" rx="5"/>
+  <text x="500" y="470" text-anchor="middle" font-weight="bold" fill="#0277bd">Vector Store (ChromaDB)</text>
+  <text x="360" y="490" font-size="12" fill="#333">1. Semantic search with embeddings</text>
+  <text x="360" y="505" font-size="12" fill="#333">2. Course title matching</text>
+  <text x="360" y="520" font-size="12" fill="#333">3. Lesson number filtering</text>
+  <text x="360" y="535" font-size="12" fill="#333">4. Return ranked results</text>
+  <text x="360" y="550" font-size="12" fill="#333">5. Include metadata (course, lesson)</text>
+  <text x="360" y="580" font-size="10" fill="#666">vector_store.py</text>
+
+  <!-- Session Manager -->
+  <rect x="50" y="450" width="200" height="100" fill="#f1f8e9" stroke="#689f38" stroke-width="2" rx="5"/>
+  <text x="150" y="470" text-anchor="middle" font-weight="bold" fill="#689f38">Session Manager</text>
+  <text x="60" y="490" font-size="12" fill="#333">1. Create/manage sessions</text>
+  <text x="60" y="505" font-size="12" fill="#333">2. Store conversation history</text>
+  <text x="60" y="520" font-size="12" fill="#333">3. Provide context for AI</text>
+  <text x="60" y="540" font-size="10" fill="#666">session_manager.py</text>
+
+  <!-- Arrows -->
+  <!-- Frontend to API -->
+  <line x1="250" y1="120" x2="350" y2="120" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="300" y="110" text-anchor="middle" font-size="10" fill="#666">HTTP POST</text>
+
+  <!-- API to RAG -->
+  <line x1="550" y1="120" x2="650" y2="120" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+  <!-- RAG to AI Generator -->
+  <line x1="700" y1="180" x2="250" y2="240" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+  <!-- AI Generator to Tool Manager -->
+  <line x1="300" y1="310" x2="400" y2="310" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="350" y="300" text-anchor="middle" font-size="10" fill="#666">Tool Call</text>
+
+  <!-- Tool Manager to CourseSearchTool -->
+  <line x1="600" y1="310" x2="700" y2="310" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+  <!-- CourseSearchTool to Vector Store -->
+  <line x1="825" y1="380" x2="550" y2="450" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="700" y="420" text-anchor="middle" font-size="10" fill="#666">Search Query</text>
+
+  <!-- RAG to Session Manager -->
+  <line x1="650" y1="160" x2="200" y2="450" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="400" y="300" text-anchor="middle" font-size="10" fill="#666">Get/Update History</text>
+
+  <!-- Return path arrow -->
+  <line x1="350" y1="140" x2="250" y2="140" stroke="#666" stroke-width="2" marker-end="url(#arrowhead)" stroke-dasharray="5,5"/>
+  <text x="300" y="155" text-anchor="middle" font-size="10" fill="#666">Response + Sources</text>
+
+  <!-- Data Flow Legend -->
+  <rect x="50" y="650" width="900" height="120" fill="#ffffff" stroke="#ddd" stroke-width="1" rx="5"/>
+  <text x="70" y="670" font-weight="bold" font-size="14" fill="#333">Key Architecture Points:</text>
+
+  <text x="70" y="690" font-size="12" fill="#333">• Tool-based RAG: AI uses function calling to search vector store (not direct retrieval)</text>
+  <text x="70" y="705" font-size="12" fill="#333">• Session Management: Conversation history maintained for context</text>
+  <text x="70" y="720" font-size="12" fill="#333">• Modular Design: Each component has clear responsibilities and interfaces</text>
+  <text x="70" y="735" font-size="12" fill="#333">• ChromaDB: Semantic search with sentence-transformers embeddings</text>
+  <text x="70" y="750" font-size="12" fill="#333">• Smart Filtering: Course name matching and lesson number filtering</text>
+</svg>
