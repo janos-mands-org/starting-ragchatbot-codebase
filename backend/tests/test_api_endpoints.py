@@ -284,10 +284,15 @@ class TestCORSMiddleware:
 
     def test_cors_headers_present(self, client, api_query_request):
         """Test that CORS headers are present in response"""
-        response = client.post("/api/query", json=api_query_request)
+        # Add Origin header to trigger CORS
+        response = client.post(
+            "/api/query",
+            json=api_query_request,
+            headers={"Origin": "http://localhost:3000"}
+        )
 
         assert response.status_code == 200
-        # CORS headers should be present
+        # CORS headers should be present when Origin header is sent
         assert "access-control-allow-origin" in response.headers
 
     def test_options_request(self, client):
